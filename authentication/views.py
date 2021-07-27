@@ -1,7 +1,7 @@
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.generics import GenericAPIView
 from django.contrib.auth import authenticate
+from rest_framework.response import Response
+from rest_framework import status, permissions
+from rest_framework.generics import GenericAPIView
 
 from authentication.serializers import (
     RegisterSerializer,
@@ -9,8 +9,18 @@ from authentication.serializers import (
 )
 
 
+class AuthUserAPIView(GenericAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        user = request.user
+        serializer = RegisterSerializer(user)
+        return Response({'user': serializer.data}, status=status.HTTP_200_OK)
+
+
 class RegisterAPIView(GenericAPIView):
     serializer_class = RegisterSerializer
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -23,6 +33,7 @@ class RegisterAPIView(GenericAPIView):
 
 class LoginAPIView(GenericAPIView):
     serializer_class = LoginSerializer
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
         email = request.data.get('email', None)
